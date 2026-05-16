@@ -59,7 +59,7 @@ class SSD1680:
     def _data(self, buf):
         self.cs(0)
         self.dc(1)
-        self.spi.write(buf if isinstance(buf, bytearray) else bytearray([buf]))
+        self.spi.write(buf if isinstance(buf, (bytes, bytearray)) else bytearray(buf))
         self.cs(1)
 
     def _wait_busy(self, timeout_ms=30000):

@@ -26,6 +26,15 @@ flowchart LR
     style E fill:#ffccbc,stroke:#333
 ```
 
+## 🔗 Key Components
+
+| Component | Product | Link |
+|-----------|---------|------|
+| Display | Adafruit 2.9″ Tri-Color eInk Breakout (SSD1680) | [PID 1028](https://www.adafruit.com/product/1028) |
+| MCU | Raspberry Pi Pico (RP2040) | [Pico](https://www.raspberrypi.com/products/raspberry-pi-pico/) |
+| Power | Pimoroni Pico LiPo SHIM (MCP73831) | [PIM557](https://shop.pimoroni.com/products/pico-lipo-shim) |
+| Battery | LiPo 3.7V (500–2000 mAh) | JST-PH connector |
+
 ## 🧱 Hardware
 
 ```mermaid
@@ -52,14 +61,14 @@ block-beta
 
 ### Bill of Materials
 
-| Ref | Qty | Part | Notes |
-|-----|-----|------|-------|
-| U1 | 1 | Raspberry Pi Pico | RP2040, 40-pin DIP |
-| U2 | 1 | Adafruit 2.9″ Tri-Color eInk Breakout | PID 1028, SSD1680, 128×296, microSD slot |
-| U3 | 1 | Pimoroni Pico LiPo SHIM | PIM557, MCP73831 charger |
-| SW1–3 | 3 | Tactile switch, SPST-NO | 6 mm, for navigation |
-| BAT | 1 | LiPo battery, 3.7 V | 500–2000 mAh, JST-PH 2-pin |
-| — | 1 | Altoids tin | Standard size (~95×60×20 mm) |
+| Ref | Qty | Part | Link | Notes |
+|-----|-----|------|------|-------|
+| U1 | 1 | Raspberry Pi Pico | [Buy](https://www.raspberrypi.com/products/raspberry-pi-pico/) | RP2040, 40-pin DIP |
+| U2 | 1 | Adafruit 2.9″ Tri-Color eInk Breakout | [Buy](https://www.adafruit.com/product/1028) | SSD1680, 128×296, microSD slot |
+| U3 | 1 | Pimoroni Pico LiPo SHIM | [Buy](https://shop.pimoroni.com/products/pico-lipo-shim) | PIM557, MCP73831 charger |
+| SW1–3 | 3 | Tactile switch, SPST-NO | — | 6 mm, for navigation |
+| BAT | 1 | LiPo battery, 3.7 V | — | 500–2000 mAh, JST-PH 2-pin |
+| — | 1 | Altoids tin | — | Standard size (~95×60×20 mm) |
 
 ### Pin Connections
 
@@ -284,6 +293,37 @@ Target enclosure is a standard **Altoids tin** (~95×60×20 mm internal dimensio
 - **Display cutout:** ~31×69 mm centered on the lid
 - **Button holes:** 3× 7 mm holes along the bottom edge
 - **Stackup** (bottom → top): insulated tin floor → LiPo battery → Pico + LiPo SHIM → eInk breakout → lid
+
+### Testing Without Buttons or SD Card
+
+Use `firmware/test_display.py` to verify wiring before deploying the full reader:
+
+```bash
+mpremote connect /dev/ttyACM1 fs cp firmware/test_display.py :main.py
+mpremote connect /dev/ttyACM1 reset
+```
+
+This runs 5 visual tests (color bars, checkerboard, borders, text, grid) — no buttons or SD card needed.
+
+## ⚠️ Troubleshooting
+
+### Display stays blank
+
+1. **Check power:** The eInk breakout needs 3.3 V on VIN. If using the Pico's 3V3 pin (pin 36), verify it reads 3.3 V. The breakout also accepts 5 V on VIN (it has an onboard regulator).
+2. **Check the ribbon cable:** The flat flex cable connecting the glass panel to the green PCB must be fully inserted and latched. Push it firmly into the connector and flip the black latch down.
+3. **Solder headers on the Pico:** Loose jumper wires on bare Pico pads do **not** make reliable contact for high-speed SPI. Solder pin headers (or at minimum push solid wire through the holes).
+4. **Pin mapping:** Double-check every connection against the pinout diagram above. One swapped wire (especially CS vs D/C, or SCK vs MOSI) gives a blank screen.
+5. **Run `test_display.py`** (see above) — it prints status to the serial console so you can see which step fails.
+
+### BUSY pin timeout
+
+If the display hangs with "BUSY timeout", check the BUSY pin connection (GP8 → BUSY). If BUSY is floating (disconnected), the driver will wait forever.
+
+### SD card not detected
+
+- Format the card as **FAT32** (not exFAT).
+- Check SDCS connection (GP9 → SDCS).
+- The card must be inserted before power-on.
 
 ---
 
