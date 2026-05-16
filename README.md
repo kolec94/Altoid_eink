@@ -30,7 +30,7 @@ flowchart LR
 
 | Component | Product | Link |
 |-----------|---------|------|
-| Display adapter | Adafruit eInk Breakout Friend with 32KB SRAM | [PID 4224](https://www.adafruit.com/product/4224) |
+| Display | Adafruit 2.9″ Tri-Color eInk Breakout (SSD1680) | [PID 1028](https://www.adafruit.com/product/1028) |
 | Display panel | 2.9″ Tri-Color eInk (SSD1680, 128×296) | — |
 | MCU | Raspberry Pi Pico (RP2040) | [Pico](https://www.raspberrypi.com/products/raspberry-pi-pico/) |
 | Power | Pimoroni Pico LiPo SHIM (MCP73831) | [PIM557](https://shop.pimoroni.com/products/pico-lipo-shim) |

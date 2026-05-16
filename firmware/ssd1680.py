@@ -100,7 +100,7 @@ class SSD1680:
 
         # Border waveform: follow LUT for VCOM black
         self._command(_BORDER_WAVEFORM)
-        self._data(0x03)  # VCOM from register, border=black
+        self._data(0x05)
 
         # Temperature sensor: internal
         self._command(_TEMP_SENSOR)
@@ -114,9 +114,9 @@ class SSD1680:
         self._command(0x03)
         self._data(0x17)
 
-        # Source driving voltage
+        # Source driving voltage (VSH1=15V, VSH2=5V, VSL=-15V)
         self._command(0x04)
-        self._data(bytearray([0x41, 0xAE, 0x32]))
+        self._data(bytearray([0x41, 0x00, 0x32]))
 
         # Display update mode default
         self._command(0x22)
