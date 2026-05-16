@@ -25,6 +25,7 @@ PIN_SDCS = 9   # SD Card CS
 PIN_BTN_UP   = 10
 PIN_BTN_DOWN = 11
 PIN_BTN_SEL  = 12
+PIN_SRCS     = 13  # SRAM chip select (hold HIGH)
 
 # ── Display specs ───────────────────────────────────────────────
 WIDTH  = 128
@@ -70,6 +71,9 @@ class EInkReader:
         self.btn_up   = Pin(PIN_BTN_UP,   Pin.IN, Pin.PULL_UP)
         self.btn_down = Pin(PIN_BTN_DOWN, Pin.IN, Pin.PULL_UP)
         self.btn_sel  = Pin(PIN_BTN_SEL,  Pin.IN, Pin.PULL_UP)
+
+        # ── SRAM chip select (hold HIGH to disable) ────────────
+        self.srcs = Pin(PIN_SRCS, Pin.OUT, value=1)
 
         # ── State ───────────────────────────────────────────────
         self.files = []

@@ -16,6 +16,7 @@ PIN_ECS  = 5
 PIN_DC   = 6
 PIN_RST  = 7
 PIN_BUSY = 8
+PIN_SRCS = 13  # SRAM CS - hold HIGH to disable
 
 WIDTH  = 128
 HEIGHT = 296
@@ -179,6 +180,10 @@ def test():
     print("Initializing SPI...")
     spi = SPI(0, baudrate=4_000_000, polarity=0, phase=0, bits=8,
               sck=Pin(PIN_SCK), mosi=Pin(PIN_MOSI))
+
+    # Hold SRAM chip select HIGH to disable SRAM
+    srcs = Pin(PIN_SRCS, Pin.OUT, value=1)
+    print("SRCS held HIGH")
 
     print("Initializing display...")
     d = SSD1680(spi, cs=PIN_ECS, dc=PIN_DC, rst=PIN_RST, busy=PIN_BUSY)

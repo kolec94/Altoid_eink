@@ -30,7 +30,8 @@ flowchart LR
 
 | Component | Product | Link |
 |-----------|---------|------|
-| Display | Adafruit 2.9″ Tri-Color eInk Breakout (SSD1680) | [PID 1028](https://www.adafruit.com/product/1028) |
+| Display adapter | Adafruit eInk Breakout Friend with 32KB SRAM | [PID 4224](https://www.adafruit.com/product/4224) |
+| Display panel | 2.9″ Tri-Color eInk (SSD1680, 128×296) | — |
 | MCU | Raspberry Pi Pico (RP2040) | [Pico](https://www.raspberrypi.com/products/raspberry-pi-pico/) |
 | Power | Pimoroni Pico LiPo SHIM (MCP73831) | [PIM557](https://shop.pimoroni.com/products/pico-lipo-shim) |
 | Battery | LiPo 3.7V (500–2000 mAh) | JST-PH connector |
@@ -64,7 +65,8 @@ block-beta
 | Ref | Qty | Part | Link | Notes |
 |-----|-----|------|------|-------|
 | U1 | 1 | Raspberry Pi Pico | [Buy](https://www.raspberrypi.com/products/raspberry-pi-pico/) | RP2040, 40-pin DIP |
-| U2 | 1 | Adafruit 2.9″ Tri-Color eInk Breakout | [Buy](https://www.adafruit.com/product/1028) | SSD1680, 128×296, microSD slot |
+| U2 | 1 | eInk Breakout Friend (32KB SRAM) | [Buy](https://www.adafruit.com/product/4224) | SSD1680 driver, SRAM, microSD slot |
+| — | 1 | 2.9″ Tri-Color eInk Panel | — | 128×296, Red/Black/White, 24-pin FPC |
 | U3 | 1 | Pimoroni Pico LiPo SHIM | [Buy](https://shop.pimoroni.com/products/pico-lipo-shim) | PIM557, MCP73831 charger |
 | SW1–3 | 3 | Tactile switch, SPST-NO | — | 6 mm, for navigation |
 | BAT | 1 | LiPo battery, 3.7 V | — | 500–2000 mAh, JST-PH 2-pin |
@@ -84,13 +86,14 @@ flowchart LR
         gp7["GP7 · RST"]
         gp8["GP8 · BUSY"]
         gp9["GP9 · SDCS"]
+        gp13["GP13 · SRCS"]
         gp10["GP10"]
         gp11["GP11"]
         gp12["GP12"]
         pwr["3V3 · GND"]
     end
 
-    subgraph eink["🖥️ eInk Breakout"]
+    subgraph eink["🖥️ Breakout Friend<br/>(PID 4224)"]
         sck["SCK"]
         mosi["MOSI"]
         miso["MISO"]
@@ -99,6 +102,7 @@ flowchart LR
         rst["RST"]
         busy["BUSY"]
         sdcs["SDCS"]
+        srcs["SRCS"]
         vin["VIN · GND"]
     end
 
@@ -116,6 +120,7 @@ flowchart LR
     gp7 --> rst
     gp8 --> busy
     gp9 --> sdcs
+    gp13 --> srcs
     pwr --> vin
     gp10 --> up
     gp11 --> down
