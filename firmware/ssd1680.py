@@ -98,12 +98,29 @@ class SSD1680:
         self._command(_DATA_ENTRY)
         self._data(0x03)
 
-        # Border waveform: follow LUT0 (black)
+        # Border waveform: follow LUT for VCOM black
         self._command(_BORDER_WAVEFORM)
-        self._data(0x05)  # 0x05 = follow LUT1 (for tri-color, or use 0x00)
+        self._data(0x03)  # VCOM from register, border=black
 
         # Temperature sensor: internal
         self._command(_TEMP_SENSOR)
+        self._data(0x80)
+
+        # VCOM voltage (critical: panel shows nothing without this!)
+        self._command(0x2C)
+        self._data(0x36)
+
+        # Gate driving voltage
+        self._command(0x03)
+        self._data(0x17)
+
+        # Source driving voltage
+        self._command(0x04)
+        self._data(bytearray([0x41, 0xAE, 0x32]))
+
+        # Display update mode default
+        self._command(0x22)
+        self._data(0xF4)  # Use clock + LUT, full update
         self._data(0x80)
 
         # Set RAM X start/end
@@ -216,7 +233,7 @@ class SSD1680:
         """Trigger display update sequence."""
         # Display update control 2: use clock signal, full update
         self._command(_DISPLAY_UPDATE)
-        self._data(0xF7)
+        self._data(0xF4)  # Full update with clock + LUT
 
         # Master activate
         self._command(_MASTER_ACTIVATE)

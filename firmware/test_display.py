@@ -61,8 +61,11 @@ class SSD1680:
         self._cmd(0x12); self._wait()                    # SW reset
         self._cmd(0x01); self._data([0x27, 0x01, 0x00])  # 296 lines
         self._cmd(0x11); self._data(0x03)                 # data entry
-        self._cmd(0x3C); self._data(0x05)                 # border
+        self._cmd(0x3C); self._data(0x03)                 # border VCOM
         self._cmd(0x18); self._data(0x80)                 # temp sensor
+        self._cmd(0x2C); self._data(0x36)                 # VCOM voltage
+        self._cmd(0x03); self._data(0x17)                 # gate voltage
+        self._cmd(0x04); self._data([0x41, 0xAE, 0x32])  # source voltage
         self._cmd(0x44); self._data([0x00, 0x0F])         # RAM X range
         self._cmd(0x45); self._data([0x00, 0x00, 0x27, 0x01])  # RAM Y range
         self._cmd(0x4E); self._data(0x00)
@@ -165,7 +168,7 @@ class SSD1680:
     def update(self):
         self._cmd(0x24); self._data(self.bw)
         self._cmd(0x26); self._data(self.red)
-        self._cmd(0x22); self._data(0xF7)
+        self._cmd(0x22); self._data(0xF4)
         self._cmd(0x20)
         self._wait()
 
