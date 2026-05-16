@@ -1,6 +1,6 @@
 """
-Minimal 23LC1024 / 23K256 SPI SRAM driver for MicroPython
-Used with Adafruit eInk Breakout Friend (PID 4224).
+Minimal 23LC1024 / 23K256 SPI SRAM driver for MicroPython.
+Used with the ThinkInk/EYESPI onboard memory chip via MEMCS.
 """
 
 from machine import Pin

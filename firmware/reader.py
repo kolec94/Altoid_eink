@@ -16,17 +16,16 @@ from font5x7 import FONT_WIDTH, FONT_HEIGHT, FONT_SPACING, draw_text, draw_text_
 PIN_SCK  = 2
 PIN_MOSI = 3
 PIN_MISO = 4
-PIN_ECS  = 5   # E-Ink CS
+PIN_TCS  = 5   # E-Ink display CS (EYESPI TCS)
 PIN_DC   = 6
 PIN_RST  = 7
 PIN_BUSY = 8
-PIN_SDCS = 9   # SD Card CS
+PIN_SDCS = 9   # EYESPI SD card CS
 
 PIN_BTN_UP   = 10
 PIN_BTN_DOWN = 11
 PIN_BTN_SEL  = 12
-PIN_SRCS     = 13  # SRAM chip select
-PIN_ENA      = 14  # Display power enable
+PIN_MEMCS    = 13  # EYESPI memory/SRAM chip select
 
 # ── Display specs ───────────────────────────────────────────────
 WIDTH  = 128
@@ -57,7 +56,7 @@ class EInkReader:
 
         # ── Display ─────────────────────────────────────────────
         self.display = SSD1680(self.spi,
-                               cs=PIN_ECS,
+                               cs=PIN_TCS,
                                dc=PIN_DC,
                                rst=PIN_RST,
                                busy=PIN_BUSY,
@@ -74,10 +73,7 @@ class EInkReader:
         self.btn_sel  = Pin(PIN_BTN_SEL,  Pin.IN, Pin.PULL_UP)
 
         # ── SRAM chip select (hold HIGH to disable) ────────────
-        self.srcs = Pin(PIN_SRCS, Pin.OUT, value=1)
-
-        # ── Display power enable (must be HIGH) ──────────────
-        self.ena = Pin(PIN_ENA, Pin.OUT, value=1)
+        self.memcs = Pin(PIN_MEMCS, Pin.OUT, value=1)
 
         # ── State ───────────────────────────────────────────────
         self.files = []

@@ -30,8 +30,8 @@ flowchart LR
 
 | Component | Product | Link |
 |-----------|---------|------|
-| Display | Adafruit 2.9″ Tri-Color eInk Breakout (SSD1680) | [PID 1028](https://www.adafruit.com/product/1028) |
-| Display panel | 2.9″ Tri-Color eInk (SSD1680, 128×296) | — |
+| Display | Adafruit 2.9″ Red/Black/White eInk Display Breakout - THINK INK | [PID 1028](https://www.adafruit.com/product/1028) |
+| Connection | Adafruit EYESPI Breakout Board + 18-pin EYESPI cable | [PID 5613](https://www.adafruit.com/product/5613) |
 | MCU | Raspberry Pi Pico (RP2040) | [Pico](https://www.raspberrypi.com/products/raspberry-pi-pico/) |
 | Power | Pimoroni Pico LiPo SHIM (MCP73831) | [PIM557](https://shop.pimoroni.com/products/pico-lipo-shim) |
 | Battery | LiPo 3.7V (500–2000 mAh) | JST-PH connector |
@@ -65,8 +65,9 @@ block-beta
 | Ref | Qty | Part | Link | Notes |
 |-----|-----|------|------|-------|
 | U1 | 1 | Raspberry Pi Pico | [Buy](https://www.raspberrypi.com/products/raspberry-pi-pico/) | RP2040, 40-pin DIP |
-| U2 | 1 | eInk Breakout Friend (32KB SRAM) | [Buy](https://www.adafruit.com/product/4224) | SSD1680 driver, SRAM, microSD slot |
-| — | 1 | 2.9″ Tri-Color eInk Panel | — | 128×296, Red/Black/White, 24-pin FPC |
+| U2 | 1 | Adafruit 2.9″ ThinkInk Tri-Color eInk Display | [Buy](https://www.adafruit.com/product/1028) | SSD1680, onboard SRAM, microSD, EYESPI |
+| J1 | 1 | EYESPI Breakout Board | [Buy](https://www.adafruit.com/product/5613) | 18-pin FPC to breadboard/header pins |
+| — | 1 | 18-pin EYESPI cable | [Buy](https://www.adafruit.com/product/5239) | Connects ThinkInk EYESPI to adapter |
 | U3 | 1 | Pimoroni Pico LiPo SHIM | [Buy](https://shop.pimoroni.com/products/pico-lipo-shim) | PIM557, MCP73831 charger |
 | SW1–3 | 3 | Tactile switch, SPST-NO | — | 6 mm, for navigation |
 | BAT | 1 | LiPo battery, 3.7 V | — | 500–2000 mAh, JST-PH 2-pin |
@@ -81,28 +82,28 @@ flowchart LR
         gp2["GP2 · SCK"]
         gp3["GP3 · MOSI"]
         gp4["GP4 · MISO"]
-        gp5["GP5 · ECS"]
+        gp5["GP5 · TCS"]
         gp6["GP6 · D/C"]
         gp7["GP7 · RST"]
         gp8["GP8 · BUSY"]
         gp9["GP9 · SDCS"]
-        gp13["GP13 · SRCS"]
+        gp13["GP13 · MEMCS"]
         gp10["GP10"]
         gp11["GP11"]
         gp12["GP12"]
         pwr["3V3 · GND"]
     end
 
-    subgraph eink["🖥️ Breakout Friend<br/>(PID 4224)"]
+    subgraph eink["🖥️ EYESPI Breakout<br/>to ThinkInk PID 1028"]
         sck["SCK"]
         mosi["MOSI"]
         miso["MISO"]
-        ecs["ECS"]
+        tcs["TCS"]
         dc["D/C"]
         rst["RST"]
         busy["BUSY"]
         sdcs["SDCS"]
-        srcs["SRCS"]
+        memcs["MEMCS"]
         vin["VIN · GND"]
     end
 
@@ -115,12 +116,12 @@ flowchart LR
     gp2 --> sck
     gp3 --> mosi
     gp4 --> miso
-    gp5 --> ecs
+    gp5 --> tcs
     gp6 --> dc
     gp7 --> rst
     gp8 --> busy
     gp9 --> sdcs
-    gp13 --> srcs
+    gp13 --> memcs
     pwr --> vin
     gp10 --> up
     gp11 --> down
@@ -133,6 +134,26 @@ flowchart LR
 Buttons are **active-low** with internal pull-ups — no external resistors needed.  
 Battery level is read via Pico's internal **ADC3** (VSYS/3) — no extra pin.
 
+#### EYESPI breakout wiring
+
+Wire to the signal labels printed on the EYESPI breakout adapter:
+
+| EYESPI label | Connects to |
+|--------------|-------------|
+| VIN | Pico 3V3(OUT), pin 36 |
+| GND | Pico GND, pin 38 |
+| SCK | Pico GP2, pin 4 |
+| MOSI | Pico GP3, pin 5 |
+| MISO | Pico GP4, pin 6 |
+| TCS | Pico GP5, pin 7 |
+| DC | Pico GP6, pin 9 |
+| RST | Pico GP7, pin 10 |
+| BUSY | Pico GP8, pin 11 |
+| SDCS | Pico GP9, pin 12 |
+| MEMCS | Pico GP13, pin 17 |
+
+There is no `ENA` wire in the EYESPI setup.
+
 ### Schematic
 
 The `hardware/` folder contains a KiCad 8 project:
@@ -140,7 +161,7 @@ The `hardware/` folder contains a KiCad 8 project:
 ```
 hardware/
 ├── Altoid_eink.kicad_pro    ← KiCad project
-├── Altoid_eink.kicad_sch    ← Schematic (5 symbols, 13 nets)
+├── Altoid_eink.kicad_sch    ← Schematic (5 symbols, 14 nets)
 ├── generate_schematic.py    ← Regenerate from Python
 ├── schematic_ascii.txt      ← Visual reference diagram
 └── README.md                ← BOM, netlist, enclosure notes
@@ -327,7 +348,7 @@ If the display hangs with "BUSY timeout", check the BUSY pin connection (GP8 →
 ### SD card not detected
 
 - Format the card as **FAT32** (not exFAT).
-- Check SDCS connection (GP9 → SDCS).
+- Check EYESPI `SDCS` connection (Pico GP9 → SDCS).
 - The card must be inserted before power-on.
 
 ---
@@ -341,7 +362,8 @@ MIT — see [LICENSE](LICENSE) file.
 ## 🔗 References
 
 - [Raspberry Pi Pico Datasheet](https://datasheets.raspberrypi.com/pico/pico-datasheet.pdf)
-- [Adafruit 2.9″ eInk Breakout](https://www.adafruit.com/product/1028)
+- [Adafruit 2.9″ ThinkInk eInk Display](https://www.adafruit.com/product/1028)
+- [Adafruit EYESPI Breakout Board](https://www.adafruit.com/product/5613)
 - [Pimoroni Pico LiPo SHIM](https://shop.pimoroni.com/products/pico-lipo-shim)
 - [SSD1680 Datasheet](https://cdn-learn.adafruit.com/assets/assets/000/131/641/original/SSD1680.pdf)
 - [MicroPython for RP2040](https://micropython.org/download/RPI_PICO/)

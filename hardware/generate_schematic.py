@@ -38,8 +38,8 @@ BTN_SEL_UUID  = fresh_uuid()
 # Pin UUIDs for Pico (40 pins)
 pico_pin_uuids = [fresh_uuid() for _ in range(40)]
 
-# Pin UUIDs for eInk connector
-eink_pin_uuids = [fresh_uuid() for _ in range(10)]
+# Pin UUIDs for EYESPI breakout connector labels used by this project
+eink_pin_uuids = [fresh_uuid() for _ in range(11)]
 
 # Pin UUIDs for buttons
 btn_up_pin   = [fresh_uuid() for _ in range(2)]
@@ -75,17 +75,17 @@ def make_pico_symbol(at_x=50, at_y=100):
 
 
 def make_eink_connector(at_x=150, at_y=100):
-    """10-pin connector for Adafruit eInk breakout."""
-    pin_names = ["VIN", "GND", "SCK", "MOSI", "MISO",
-                 "ECS", "D/C", "RST", "BUSY", "SDCS"]
+    """EYESPI breakout signals used by the ThinkInk display."""
+    pin_names = ["VIN", "GND", "SCK", "MOSI", "MISO", "TCS",
+                 "DC", "RST", "BUSY", "SDCS", "MEMCS"]
 
     lines = []
-    lines.append(f'    (symbol (lib_id "Connector:Conn_01x10_Female") (at {at_x} {at_y} 0) (unit 1) (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)')
+    lines.append(f'    (symbol (lib_id "Connector:Conn_01x11_Female") (at {at_x} {at_y} 0) (unit 1) (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)')
     lines.append(f'      (uuid "{EINK_UUID}")')
     lines.append(f'      (property "Reference" "J1" (at {at_x - 6} {at_y - 30} 0) (effects (font (size 1.27 1.27))) )')
-    lines.append(f'      (property "Value" "eInk_Breakout" (at {at_x + 4} {at_y - 30} 0) (effects (font (size 1.27 1.27))) )')
-    lines.append(f'      (property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x10_P2.54mm_Vertical" (at {at_x} {at_y} 0) (effects (font (size 1.27 1.27)) hide) )')
-    lines.append(f'      (property "Datasheet" "https://www.adafruit.com/product/1028" (at {at_x} {at_y} 0) (effects (font (size 1.27 1.27)) hide) )')
+    lines.append(f'      (property "Value" "EYESPI_Breakout_PID5613" (at {at_x + 4} {at_y - 30} 0) (effects (font (size 1.27 1.27))) )')
+    lines.append(f'      (property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x11_P2.54mm_Vertical" (at {at_x} {at_y} 0) (effects (font (size 1.27 1.27)) hide) )')
+    lines.append(f'      (property "Datasheet" "https://www.adafruit.com/product/5613" (at {at_x} {at_y} 0) (effects (font (size 1.27 1.27)) hide) )')
 
     for i, name in enumerate(pin_names):
         lines.append(f'      (pin "{name}" (uuid "{eink_pin_uuids[i]}"))')
@@ -188,30 +188,30 @@ def generate():
         3:  "GP2_SCK",   # index 3 = GP2 (pin 4)
         4:  "GP3_MOSI",  # index 4 = GP3 (pin 5)
         5:  "GP4_MISO",  # index 5 = GP4 (pin 6)
-        6:  "GP5_ECS",   # index 6 = GP5 (pin 7)
+        6:  "GP5_TCS",   # index 6 = GP5 (pin 7)
         8:  "GP6_DC",    # index 8 = GP6 (pin 9)
         9:  "GP7_RST",   # index 9 = GP7 (pin 10)
         10: "GP8_BUSY",  # index 10 = GP8 (pin 11)
         11: "GP9_SDCS",  # index 11 = GP9 (pin 12)
+        16: "GP13_MEMCS", # index 16 = GP13 (pin 17)
         # Power pins
         35: "3V3",       # index 35 = 3V3(OUT) pin 36
         37: "GND",       # index 37 = GND pin 38
     }
 
-    # Wires: Pico right side → eInk breakout
-    # eInk connector has 10 pins (0-9): VIN, GND, SCK, MOSI, MISO, ECS, D/C, RST, BUSY, SDCS
-    # Align with pins 36,38 down through 4-12
+    # Wires: Pico right side → EYESPI breakout labels.
     eink_to_pico = {
         0: 35,  # VIN  → 3V3(OUT)
         1: 37,  # GND  → GND
         2: 3,   # SCK  → GP2
         3: 4,   # MOSI → GP3
         4: 5,   # MISO → GP4
-        5: 6,   # ECS  → GP5
-        6: 8,   # D/C  → GP6
+        5: 6,   # TCS  → GP5
+        6: 8,   # DC   → GP6
         7: 9,   # RST  → GP7
         8: 10,  # BUSY → GP8
         9: 11,  # SDCS → GP9
+        10: 16, # MEMCS → GP13
     }
 
     # Pico pin positions (KiCad symbols have standard pin layout)
@@ -239,10 +239,10 @@ def generate():
         return x, y
 
     def eink_pin_pos(pin_index):
-        """Return (x, y) for eInk connector pin (0-9)."""
+        """Return (x, y) for EYESPI breakout connector signal (0-10)."""
         # Connector is vertical, pin 1 at top
         x = eink_x - 3  # left side of connector
-        y = eink_y + (15 - pin_index * 2.54)  # 10 pins, 2.54mm pitch
+        y = eink_y + (15 - pin_index * 2.54)
         return x, y
 
     # Draw connection wires
@@ -252,8 +252,8 @@ def generate():
         eink_x_pos, eink_y_pos = eink_pin_pos(eink_idx)
 
         # Net name based on eInk signal
-        eink_pin_names = ["VIN", "GND", "SCK", "MOSI", "MISO",
-                          "ECS", "D_C", "RST", "BUSY", "SDCS"]
+        eink_pin_names = ["VIN", "GND", "SCK", "MOSI", "MISO", "TCS",
+                          "DC", "RST", "BUSY", "SDCS", "MEMCS"]
         net_name = eink_pin_names[eink_idx]
 
         # Label on Pico side
@@ -283,7 +283,7 @@ def generate():
         f.write(content)
     print(f"Generated: {OUTPUT_FILE}")
     print(f"  Symbols: 1× Pico, 1× eInk connector, 3× push buttons")
-    print(f"  Nets: 10× Pico→eInk (by label), 3× Pico→buttons (by label)")
+    print(f"  Nets: 11× Pico→EYESPI (by label), 3× Pico→buttons (by label)")
 
 
 if __name__ == '__main__':

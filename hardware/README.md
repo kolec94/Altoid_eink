@@ -2,9 +2,10 @@
 
 ## Overview
 Battery-powered eInk reader in an Altoids tin enclosure.
-Raspberry Pi Pico reads `.txt` files from microSD card on
-an Adafruit eInk Breakout Friend (PID 4224) driving a
-2.9" tri-color eInk panel (SSD1680). Navigation via 3 buttons.
+Raspberry Pi Pico reads `.txt` files from a microSD card on an
+Adafruit 2.9" Red/Black/White ThinkInk display (PID 1028, SSD1680).
+The display connects through its 18-pin EYESPI connector using an
+Adafruit EYESPI Breakout Board (PID 5613). Navigation via 3 buttons.
 Powered by Pimoroni Pico LiPo SHIM with LiPo battery.
 
 ## Bill of Materials
@@ -12,8 +13,9 @@ Powered by Pimoroni Pico LiPo SHIM with LiPo battery.
 | Ref | Qty | Part | Notes |
 |-----|-----|------|-------|
 | U1 | 1 | Raspberry Pi Pico | RP2040, 40-pin DIP |
-| U2 | 1 | eInk Breakout Friend (32KB SRAM) | [PID 4224](https://www.adafruit.com/product/4224), SSD1680 driver, SRAM, microSD slot |
-| — | 1 | 2.9″ Tri-Color eInk Panel | 128×296, Red/Black/White, 24-pin FPC to Breakout Friend |
+| U2 | 1 | Adafruit 2.9" ThinkInk Tri-Color eInk Display | [PID 1028](https://www.adafruit.com/product/1028), SSD1680, onboard SRAM, microSD, EYESPI |
+| J1 | 1 | EYESPI Breakout Board | [PID 5613](https://www.adafruit.com/product/5613), 18-pin FPC to breadboard/header pins |
+| — | 1 | 18-pin EYESPI cable | EYESPI A-B cable |
 | U3 | 1 | Pimoroni Pico LiPo SHIM | PIM557, MCP73831 charger |
 | SW1–3 | 3 | Tactile switch, SPST-NO | 6mm, for navigation |
 | BAT | 1 | LiPo battery, 3.7V | 500–2000mAh, JST-PH 2-pin |
@@ -21,26 +23,27 @@ Powered by Pimoroni Pico LiPo SHIM with LiPo battery.
 
 ## Netlist / Connections
 
-### Pico → Breakout Friend (SPI0 + control)
+### Pico → EYESPI Breakout (SPI0 + control)
+
+Wire to the signal labels printed on the EYESPI breakout adapter.
 
 ```
-Pico Pin   GPIO    Signal     Breakout Friend Pin
-───────   ────    ──────     ──────────────────
-  4        GP2     SCK       SCK
-  5        GP3     MOSI      MOSI
-  6        GP4     MISO      MISO
-  7        GP5     ECS       ECS
-  9        GP6     D/C       D/C
- 10        GP7     RST       RST
- 11        GP8     BUSY      BUSY
- 12        GP9     SDCS      SDCS
- 17        GP13    SRCS      SRCS (hold HIGH!)
- 36       3V3(OUT) VIN       VIN
- 38       GND      GND       GND
+EYESPI Label   Pico Pin   GPIO / Power   Function
+────────────   ────────   ────────────   ────────
+VIN            36         3V3(OUT)       Power
+GND            38         GND            Ground
+SCK             4         GP2            SPI clock
+MOSI            5         GP3            SPI data out
+MISO            6         GP4            SPI data in
+TCS             7         GP5            eInk chip select
+DC              9         GP6            Data/command
+RST            10         GP7            Reset
+BUSY           11         GP8            Busy indicator
+SDCS           12         GP9            SD card chip select
+MEMCS          17         GP13           SRAM/memory chip select
 ```
 
-⚠️ **SRCS (pin 11 on Breakout Friend) must be connected to GP13 and held HIGH.**  
-If left floating, the onboard 32KB SRAM chip randomly activates and corrupts the SPI bus.
+There is no `ENA` wire in this EYESPI setup.
 
 ### Pico → Buttons
 
@@ -64,27 +67,22 @@ Pimoroni Pico LiPo SHIM solders directly to Pico castellations:
 Battery monitoring: Pico ADC3 (GP29) reads VSYS/3 internally.
 No extra pin needed.
 
-## Breakout Friend Pinout (PID 4224)
+## EYESPI Connection
 
 ```
-  ┌────────────────────────────┐
-  │  1  VIN    ○               │
-  │  2  GND    ○               │
-  │  3  SCK    ○               │
-  │  4  MOSI   ○               │
-  │  5  MISO   ○               │
-  │  6  ECS    ○               │
-  │  7  D/C    ○               │
-  │  8  RST    ○               │
-  │  9  BUSY   ○               │
-  │ 10  SDCS   ○               │
-  │ 11  SRCS   ○ ← MUST connect!│
-  └────────────────────────────┘
+Pico GPIO/header wires
         │
-  24-pin FPC to eInk panel
-
-Onboard: 32KB SPI SRAM (e.g., 23LC1024), microSD slot
+        ▼
+Adafruit EYESPI Breakout Board (PID 5613)
+        │
+        ▼
+18-pin EYESPI FPC cable
+        │
+        ▼
+Adafruit 2.9" ThinkInk Display (PID 1028)
 ```
+
+Use an 18-pin 0.5mm EYESPI cable. Raspberry Pi camera cables are not compatible.
 
 ## Layout Considerations (Altoids Tin)
 
@@ -94,32 +92,30 @@ Target enclosure: standard Altoids tin (~95×60×20mm internal)
 1. Altoids tin floor (insulated with kapton tape)
 2. LiPo battery (500–800mAh for fit)
 3. Pico + LiPo SHIM (mounted flat or on side)
-4. Breakout Friend + eInk panel (display facing up, through lid cutout)
-5. Altoids tin lid (cutout for display, holes for buttons)
+4. EYESPI breakout adapter and cable routing
+5. ThinkInk display facing up through lid cutout
+6. Altoids tin lid
 
 ### Critical dimensions:
-- eInk panel: ~29×67mm (display area)
-- Breakout Friend PCB: ~47×37mm
+- eInk display active area: 2.9", 128×296
 - Pico: 51×21mm
 - LiPo SHIM: ~52×21mm (sits under Pico)
-- Total stack height: ~12mm (battery 6mm + Pico 5mm + clearance)
+- EYESPI breakout: ~25×18mm
 
 Display cutout: ~31×69mm centered on lid
 Button holes: 3× 7mm holes along bottom edge of tin
 
 ## Schematic Notes for PCB Designer
 
-- The LiPo SHIM is a THT module that solders UNDER the Pico
-  (no separate symbol needed — treat Pico+SHIM as one unit)
-- Breakout Friend connects via 11-pin female header (2.54mm pitch)
-  or direct soldered wires
-- SRCS pin MUST be connected — do not leave floating
-- eInk panel connects to Breakout Friend via 24-pin FPC (0.5mm pitch)
-- Buttons are panel-mount (soldered to perfboard or small PCB)
-- Battery connects to SHIM's JST-PH connector
+- Treat the ThinkInk display as an EYESPI-connected module.
+- Use the EYESPI labels `TCS`, `MEMCS`, and `SDCS` in the schematic and firmware.
+- The LiPo SHIM is a THT module that solders UNDER the Pico.
+- Buttons are panel-mount (soldered to perfboard or small PCB).
+- Battery connects to SHIM's JST-PH connector.
 
 ## References
 - Pico datasheet: https://datasheets.raspberrypi.com/pico/pico-datasheet.pdf
-- Breakout Friend: https://www.adafruit.com/product/4224
+- ThinkInk 2.9" display: https://www.adafruit.com/product/1028
+- EYESPI breakout: https://www.adafruit.com/product/5613
 - LiPo SHIM: https://shop.pimoroni.com/products/pico-lipo-shim
 - SSD1680 datasheet: https://cdn-learn.adafruit.com/assets/assets/000/131/641/original/SSD1680.pdf

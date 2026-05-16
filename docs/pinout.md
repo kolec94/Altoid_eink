@@ -2,32 +2,33 @@
 
 ## Components
 - **MCU:** Raspberry Pi Pico (RP2040)
-- **Display driver:** Adafruit eInk Breakout Friend with 32KB SRAM (PID 4224)
-- **Display panel:** 2.9″ Tri-Color eInk (SSD1680, 128×296, Red/Black/White) via 24-pin FPC
+- **Display:** Adafruit 2.9" Red/Black/White eInk Display Breakout - THINK INK (SSD1680, PID 1028)
+- **Connection:** 18-pin EYESPI cable plus Adafruit EYESPI Breakout Board (PID 5613)
 - **Power:** Pimoroni Pico LiPo SHIM (PIM557)
 - **Input:** 3× tactile buttons
 - **Battery:** LiPo 3.7V via JST-PH
 
-## Breakout Friend 12-Pin Header (read from board silkscreen!)
+## EYESPI Breakout Wiring
+
+Wire to the signal labels printed on the EYESPI breakout board.
 
 ```
-Pin  Label   Description        → Pico GPIO  Pico Pin
-───  ─────   ───────────        ──────────  ────────
- 1   VIN     Power (3.3-5V)     → 3V3(OUT)   36
- 2   3V3     3.3V output        → (unused)
- 3   GND     Ground             → GND         38
- 4   SCK     SPI Clock          → GP2          4
- 5   MISO    SPI Data In        → GP4          6
- 6   MOSI    SPI Data Out       → GP3          5
- 7   ECS     E-Ink Chip Select  → GP5          7
- 8   D/C     Data/Command       → GP6          9
- 9   SRCS    SRAM Chip Select   → GP13        17
-10   RST     Hardware Reset     → GP7         10
-11   BUSY    Busy Indicator     → GP8         11
-12   ENA     Display Enable     → GP14        19
+EYESPI Label   Description             Pico GPIO / Power   Pico Pin
+────────────   ───────────             ─────────────────   ────────
+VIN            Power                   3V3(OUT)             36
+GND            Ground                  GND                  38
+SCK            SPI Clock               GP2                   4
+MOSI           SPI Data Out            GP3                   5
+MISO           SPI Data In             GP4                   6
+TCS            eInk Chip Select        GP5                   7
+DC             Data/Command            GP6                   9
+RST            Hardware Reset          GP7                  10
+BUSY           Busy Indicator          GP8                  11
+SDCS           SD Card Chip Select     GP9                  12
+MEMCS          SRAM Chip Select        GP13                 17
 ```
 
-> ⚠️ **ENA must be connected and held HIGH** — this enables power to the display panel.
+There is no `ENA` wire in this EYESPI setup.
 
 ## Pico ↔ Buttons
 
@@ -55,7 +56,7 @@ Buttons wired: GPIO → button → GND. Internal pull-up enabled in firmware.
 | Driver IC | SSD1680 |
 | Resolution | 128 × 296 (portrait) |
 | Colors | Black, White, Red |
-| Interface | 4-wire SPI (via Breakout Friend SRAM bridge) |
-| Onboard SRAM | 32KB (23LC1024 or similar) — used as frame buffer |
+| Interface | 4-wire SPI via EYESPI |
+| Onboard SRAM | Controlled by `MEMCS` |
 | Update time | ~15s (full refresh) |
-| SD card slot | On Breakout Friend, SPI mode |
+| SD card | Controlled by `SDCS` |

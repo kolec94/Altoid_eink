@@ -1,94 +1,80 @@
-Altoid eInk Reader — ASCII Schematic
-======================================
+Altoid eInk Reader - EYESPI Wiring Reference
+============================================
+
+This wiring uses the Adafruit 2.9" ThinkInk display's 18-pin EYESPI
+connector plus the Adafruit EYESPI Breakout Board. Wire to the labels
+printed on the EYESPI breakout adapter.
+
+Correct Pico connections:
+
+  EYESPI Label   Connect to Pico
+  ------------   ----------------
+  VIN            3V3(OUT), pin 36
+  GND            GND, pin 38
+  SCK            GP2, pin 4
+  MOSI           GP3, pin 5
+  MISO           GP4, pin 6
+  TCS            GP5, pin 7
+  DC             GP6, pin 9
+  RST            GP7, pin 10
+  BUSY           GP8, pin 11
+  SDCS           GP9, pin 12
+  MEMCS          GP13, pin 17
 
                          Raspberry Pi Pico
-                    ┌──────────────────────────┐
-                    │   o GP0           VBUS o │──── to LiPo SHIM VBUS
-                    │   o GP1           VSYS o │──── to LiPo SHIM VSYS
-                    │   o GND            GND o │────┐
-            SCK ────│───o GP2          3V3EN o │    │
-           MOSI ────│───o GP3          3V3  o │──┐ │
-                    │   o GP4  MISO     GND  o │  │ │
-            ECS ────│───o GP5          GP28 o │  │ │
-                    │   o GND          GP27 o │  │ │
-             DC ────│───o GP6          GP26 o │  │ │
-            RST ────│───o GP7           RUN o │  │ │
-           BUSY ────│───o GP8          GP22 o │  │ │
-           SDCS ────│───o GP9           GND o │  │ │
-                    │   o GND          GP21 o │  │ │
-     BTN_UP ────────│───o GP10         GP20 o │  │ │
-   BTN_DOWN ───────│───o GP11         GP19 o │  │ │
-    BTN_SEL ───────│───o GP12         GP18 o │  │ │
-                    │   o GP13          GND o │  │ │
-                    │   o GND          GP17 o │  │ │
-                    │   o GP14         GP16 o │  │ │
-                    │   o GP15             o │  │ │
-                    └──────────────────────────┘  │ │
-                                                  │ │
-                                                  │ │
-     ┌─────────────────────┐                      │ │
-     │ Adafruit 2.9" eInk  │                      │ │
-     │ Breakout (SSD1680)  │                      │ │
-     │                     │                      │ │
-     │ VIN ────────────────┼──────────────────────┘ │
-     │ GND ────────────────┼────────────────────────┘
-     │ SCK ────────────────┘
-     │ MOSI ───────────────┘
-     │ MISO ───────────────┘
-     │ ECS ────────────────┘
-     │ D/C ────────────────┘
-     │ RST ────────────────┘
-     │ BUSY ───────────────┘
-     │ SDCS ───────────────┘
-     │                     │
-     │ [microSD slot]      │
-     └─────────────────────┘
+                    +--------------------------+
+                    |   o GP0           VBUS o |---- to LiPo SHIM VBUS
+                    |   o GP1           VSYS o |---- to LiPo SHIM VSYS
+                    |   o GND            GND o |---- GND -> EYESPI GND
+       SCK ---------|---o GP2          3V3EN o |
+      MOSI ---------|---o GP3           3V3 o |---- VIN -> EYESPI VIN
+      MISO ---------|---o GP4           GND o |
+       TCS ---------|---o GP5          GP28 o |
+                    |   o GND          GP27 o |
+        DC ---------|---o GP6          GP26 o |
+       RST ---------|---o GP7           RUN o |
+      BUSY ---------|---o GP8          GP22 o |
+      SDCS ---------|---o GP9           GND o |
+                    |   o GND          GP21 o |
+     BTN_UP --------|---o GP10         GP20 o |
+   BTN_DOWN --------|---o GP11         GP19 o |
+    BTN_SEL --------|---o GP12         GP18 o |
+     MEMCS ---------|---o GP13          GND o |
+                    |   o GND          GP17 o |
+                    |   o GP14         GP16 o |
+                    |   o GP15             o |
+                    +--------------------------+
 
-     ┌──────────┐    ┌──────────┐    ┌──────────┐
-     │  BTN_UP  │    │ BTN_DOWN │    │ BTN_SEL  │
-     │   SW1    │    │   SW2    │    │   SW3    │
-     │  ┌──┐    │    │  ┌──┐    │    │  ┌──┐    │
-     │  │  ├────┼────┼──┤  ├────┼────┼──┤  │    │
-     │  │  │    │    │  │  │    │    │  │  │    │
-     │  └──┼────┘    │  └──┼────┘    │  └──┼────┘
-     │     │          │     │          │     │
-     │   GP10        │   GP11        │   GP12
-     └─────┼──────────┘     │          │     │
-           └────────────────┴──────────┴─────┘
-                           GND
+          Adafruit EYESPI Breakout Board (PID 5613)
+                    +--------------------------+
+                    | VIN   <- Pico 3V3       |
+                    | GND   <- Pico GND       |
+                    | SCK   <- Pico GP2       |
+                    | MOSI  <- Pico GP3       |
+                    | MISO  <- Pico GP4       |
+                    | TCS   <- Pico GP5       |
+                    | DC    <- Pico GP6       |
+                    | RST   <- Pico GP7       |
+                    | BUSY  <- Pico GP8       |
+                    | SDCS  <- Pico GP9       |
+                    | MEMCS <- Pico GP13      |
+                    +--------------------------+
+                               |
+                         18-pin FPC cable
+                               |
+                    +--------------------------+
+                    | ThinkInk 2.9" Display   |
+                    | SSD1680, 128 x 296      |
+                    +--------------------------+
 
-                         Power (LiPo SHIM)
-                    ┌──────────────────────────┐
-                    │  Pimoroni Pico LiPo SHIM │
-                    │  (solders UNDER Pico)    │
-                    │                          │
-                    │  ┌──────┐    ┌──────┐    │
-                    │  │MCP   │    │Power │    │
-                    │  │73831 │    │Switch│    │
-                    │  └──────┘    └──────┘    │
-                    │       ┌──────────┐       │
-                    │       │ JST-PH   │       │
-                    │       │ Battery  │       │
-                    │       └──────────┘       │
-                    └──────────────────────────┘
-                              │
-                          ┌───┴───┐
-                          │ LiPo  │
-                          │ 3.7V  │
-                          └───────┘
+Buttons:
+  Pico GP10 -> BTN_UP   -> GND
+  Pico GP11 -> BTN_DOWN -> GND
+  Pico GP12 -> BTN_SEL  -> GND
 
-Connections Summary:
-  Pico GP2  → eInk SCK      (SPI0 clock)
-  Pico GP3  → eInk MOSI     (SPI0 data out)
-  Pico GP4  → eInk MISO     (SPI0 data in, for SD card)
-  Pico GP5  → eInk ECS      (E-Ink chip select)
-  Pico GP6  → eInk D/C      (Data/Command)
-  Pico GP7  → eInk RST      (Reset)
-  Pico GP8  → eInk BUSY     (Busy flag)
-  Pico GP9  → eInk SDCS     (SD card chip select)
-  Pico 3V3  → eInk VIN      (Power)
-  Pico GND  → eInk GND      (Ground)
-  Pico GP10 → BTN_UP        (Active low, internal pull-up)
-  Pico GP11 → BTN_DOWN      (Active low, internal pull-up)
-  Pico GP12 → BTN_SEL       (Active low, internal pull-up)
-  All buttons → GND
+Notes:
+  - Buttons are active-low; firmware enables internal pull-ups.
+  - There is no ENA wire in this EYESPI setup.
+  - Use TCS for the display chip select.
+  - Use MEMCS for onboard SRAM.
+  - Use SDCS for the onboard microSD card slot.

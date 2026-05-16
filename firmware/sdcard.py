@@ -1,7 +1,7 @@
 """
 Micro SD Card Reader via SPI — MicroPython Block Device
 ========================================================
-For Adafruit eInk breakout's built-in microSD slot (SSD1680 board).
+For the ThinkInk display's SPI microSD card slot via EYESPI SDCS.
 Implements MicroPython's block device protocol for os.mount().
 
 References:

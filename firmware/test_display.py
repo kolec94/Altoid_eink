@@ -1,39 +1,40 @@
 """
-SRAM-bridge test — CORRECTED pinout for Breakout Friend (4224)
-Pins: VIN 3V3 GND SCK MISO MOSI ECS D/C SRCS RST BUSY ENA
+SRAM-bridge test for ThinkInk 2.9" SSD1680 over EYESPI.
+Wire through the 18-pin EYESPI breakout labels:
+VIN GND SCK MOSI MISO TCS DC MEMCS RST BUSY SDCS
 """
 
 from machine import Pin, SPI
 from time import sleep_ms
 
-# ── CORRECT PINOUT (read from board silkscreen) ──────────────
+# ── EYESPI breakout signal mapping ───────────────────────────
 PIN_SCK  = 2
-PIN_MOSI = 3    # Breakout Friend pin 6 = MOSI → Pico GP3
-PIN_MISO = 4    # Breakout Friend pin 5 = MISO → Pico GP4 (unused here but required)
-PIN_ECS  = 5    # Breakout Friend pin 7 = ECS
-PIN_DC   = 6    # Breakout Friend pin 8 = D/C
-PIN_RST  = 7    # Breakout Friend pin 10 = RST
-PIN_BUSY = 8    # Breakout Friend pin 11 = BUSY
-PIN_SRCS = 13   # Breakout Friend pin 9 = SRCS
-PIN_ENA  = 14   # Breakout Friend pin 12 = ENA (display power enable!)
+PIN_MOSI = 3
+PIN_MISO = 4
+PIN_TCS  = 5
+PIN_DC   = 6
+PIN_RST  = 7
+PIN_BUSY = 8
+PIN_SDCS = 9
+PIN_MEMCS = 13
 
 W, H = 128, 296
 BE = 16
 BS = BE * H
 
 spi = SPI(0, baudrate=4_000_000, sck=Pin(PIN_SCK), mosi=Pin(PIN_MOSI), miso=Pin(PIN_MISO))
-ecs  = Pin(PIN_ECS,  Pin.OUT, value=1)
+tcs  = Pin(PIN_TCS,  Pin.OUT, value=1)
 dc   = Pin(PIN_DC,   Pin.OUT, value=0)
 rst  = Pin(PIN_RST,  Pin.OUT, value=1)
 busy = Pin(PIN_BUSY, Pin.IN)
-srcs = Pin(PIN_SRCS, Pin.OUT, value=1)
-ena  = Pin(PIN_ENA,  Pin.OUT, value=1)  # ENABLE display power — must be HIGH
+sdcs = Pin(PIN_SDCS, Pin.OUT, value=1)
+memcs = Pin(PIN_MEMCS, Pin.OUT, value=1)
 
 def cmd(c):
-    ecs(0); dc(0); spi.write(bytes([c])); ecs(1)
+    tcs(0); dc(0); spi.write(bytes([c])); tcs(1)
 
 def data(b):
-    ecs(0); dc(1); spi.write(b); ecs(1)
+    tcs(0); dc(1); spi.write(b); tcs(1)
 
 def wait(msg=""):
     t = 0
@@ -43,12 +44,8 @@ def wait(msg=""):
     if msg: print("  BUSY ok —", msg)
 
 # ── Init ───────────────────────────────────────────────────
-print("Power ENA HIGH...")
-ena(1)
-sleep_ms(10)
-
 print("Init SRAM...")
-srcs(0); spi.write(b'\x01\x43'); srcs(1)
+memcs(0); spi.write(b'\x01\x43'); memcs(1)
 
 print("HW reset...")
 rst(1); sleep_ms(100)
@@ -78,37 +75,37 @@ print("Ready!")
 # ── SRAM bridge update ─────────────────────────────────────
 def update(bw_buf, red_buf):
     # Write to SRAM
-    srcs(0)
+    memcs(0)
     spi.write(bytearray([0x02, 0x00, 0x00]))
     spi.write(bw_buf)
-    srcs(1)
+    memcs(1)
 
-    srcs(0)
+    memcs(0)
     spi.write(bytearray([0x02, (BS >> 8) & 0xFF, BS & 0xFF]))
     spi.write(red_buf)
-    srcs(1)
+    memcs(1)
 
     # Stream SRAM → B&W RAM
-    srcs(0)
+    memcs(0)
     spi.write(bytearray([0x03, 0x00, 0x00]))
-    ecs(0); dc(0); spi.write(b'\x24'); dc(1)
+    tcs(0); dc(0); spi.write(b'\x24'); dc(1)
     db = 0
     for _ in range(BS):
         spi.write(bytes([db]))
         db = spi.read(1)[0]
     spi.write(bytes([db]))
-    ecs(1)
+    tcs(1)
 
     # Stream SRAM → RED RAM
-    srcs(0)
+    memcs(0)
     spi.write(bytearray([0x03, (BS>>8)&0xFF, BS&0xFF]))
-    ecs(0); dc(0); spi.write(b'\x26'); dc(1)
+    tcs(0); dc(0); spi.write(b'\x26'); dc(1)
     db = 0
     for _ in range(BS):
         spi.write(bytes([db]))
         db = spi.read(1)[0]
     spi.write(bytes([db]))
-    ecs(1); srcs(1)
+    tcs(1); memcs(1)
 
     # Refresh
     cmd(0x22); data(b'\xF4')
@@ -178,8 +175,8 @@ bw = bytearray([0xFF]*BS); rd = bytearray([0xFF]*BS)
 rect(bw, rd, 0, 0, W, H, 0, 0)
 rect(bw, rd, 3, 3, W-6, H-6, 0, 1)
 txt(bw, rd, 8, 120, "WIRING CORRECT!", 0, 0)
-txt(bw, rd, 8, 135, "4224 BREAKOUT", 0, 0)
-txt(bw, rd, 8, 150, "ENA PIN ACTIVE", 0, 1)
+txt(bw, rd, 8, 135, "THINKINK EYESPI", 0, 0)
+txt(bw, rd, 8, 150, "MEMCS ACTIVE", 0, 1)
 update(bw, rd)
 
 print("\n=== Test 3/3: Grid ===")
