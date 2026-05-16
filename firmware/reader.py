@@ -25,7 +25,8 @@ PIN_SDCS = 9   # SD Card CS
 PIN_BTN_UP   = 10
 PIN_BTN_DOWN = 11
 PIN_BTN_SEL  = 12
-PIN_SRCS     = 13  # SRAM chip select (hold HIGH)
+PIN_SRCS     = 13  # SRAM chip select
+PIN_ENA      = 14  # Display power enable
 
 # ── Display specs ───────────────────────────────────────────────
 WIDTH  = 128
@@ -74,6 +75,9 @@ class EInkReader:
 
         # ── SRAM chip select (hold HIGH to disable) ────────────
         self.srcs = Pin(PIN_SRCS, Pin.OUT, value=1)
+
+        # ── Display power enable (must be HIGH) ──────────────
+        self.ena = Pin(PIN_ENA, Pin.OUT, value=1)
 
         # ── State ───────────────────────────────────────────────
         self.files = []
