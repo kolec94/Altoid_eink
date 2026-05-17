@@ -93,8 +93,8 @@ Target enclosure: standard Altoids tin (~95×60×20mm internal)
 2. LiPo battery (500–800mAh for fit)
 3. Pico + LiPo SHIM (mounted flat or on side)
 4. EYESPI breakout adapter and cable routing
-5. ThinkInk display facing up through lid cutout
-6. Altoids tin lid
+5. ThinkInk display mounted to the inside of the lid, screen facing into the tin
+6. Altoids tin lid (unopened top surface, no display cutout)
 
 ### Critical dimensions:
 - eInk display active area: 2.9", 128×296
@@ -102,7 +102,7 @@ Target enclosure: standard Altoids tin (~95×60×20mm internal)
 - LiPo SHIM: ~52×21mm (sits under Pico)
 - EYESPI breakout: ~25×18mm
 
-Display cutout: ~31×69mm centered on lid
+Display opening: none — screen is viewed when the lid is open
 Button holes: 3× 7mm holes along bottom edge of tin
 
 ## Schematic Notes for PCB Designer

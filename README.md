@@ -43,9 +43,9 @@ block-beta
     columns 1
     block:stack
         columns 5
-        lid["🥫 Altoids Tin Lid\n(cutout for display)"]
+        lid["🥫 Altoids Tin Lid\n(no display cutout)"]
         space
-        eink["🖥️ Adafruit 2.9″ eInk\nSSD1680 · 128×296\nRed/Black/White"]
+        eink["🖥️ ThinkInk Display\nmounted inside lid\nfaces into tin"]
         space
         pico["🍓 Pico + LiPo SHIM\nRP2040 · MCP73831"]
         space
@@ -54,8 +54,8 @@ block-beta
         floor["🥫 Altoids Tin Floor\n(insulated)"]
     end
 
-    lid --> eink
-    eink --> pico
+    eink --> lid
+    pico --> eink
     pico --> battery
     battery --> floor
 ```
@@ -303,6 +303,28 @@ Altoid_eink/
 
 ## 🛠️ Development
 
+### Converting Books
+
+The converter in `tools/ebook2txt.py` turns EPUB/PDF files into plain `.txt`
+files for the reader.
+
+Command-line usage:
+
+```bash
+python3 tools/ebook2txt.py book.epub -d /path/to/sdcard
+python3 tools/ebook2txt.py book.pdf -o /path/to/sdcard/book.txt -w 21
+```
+
+Interactive terminal flow:
+
+```bash
+python3 tools/ebook2txt.py --interactive
+```
+
+Drag an EPUB/PDF into the terminal for the input prompt. The tool opens a
+native output-folder chooser when available (`osascript` on macOS, `zenity` or
+`kdialog` on Linux), then falls back to typing or dragging the folder path.
+
 ### Regenerating the Schematic
 
 If you modify `hardware/generate_schematic.py`:
@@ -316,9 +338,10 @@ python3 generate_schematic.py
 
 Target enclosure is a standard **Altoids tin** (~95×60×20 mm internal dimensions):
 
-- **Display cutout:** ~31×69 mm centered on the lid
+- **Display mounting:** inside of the lid, screen facing into the tin
+- **Lid cutting:** no display cutout through the top surface
 - **Button holes:** 3× 7 mm holes along the bottom edge
-- **Stackup** (bottom → top): insulated tin floor → LiPo battery → Pico + LiPo SHIM → eInk breakout → lid
+- **Stackup** (bottom → top): insulated tin floor → LiPo battery → Pico + LiPo SHIM → EYESPI breakout/cable → ThinkInk display mounted to inside of lid
 
 ### Testing Without Buttons or SD Card
 

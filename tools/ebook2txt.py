@@ -8,6 +8,7 @@ Usage:
     python3 ebook2txt.py book.pdf           → book.txt
     python3 ebook2txt.py book.epub -o out.txt
     python3 ebook2txt.py book.pdf -w 60     → wrap at 60 chars
+    python3 ebook2txt.py --interactive      → terminal prompts + folder dialog
 
 Output is clean UTF-8 plain text with:
   • Chapter titles preserved (## markers)
@@ -21,6 +22,9 @@ import html.parser
 import io
 import os
 import re
+import shlex
+import shutil
+import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -225,55 +229,180 @@ def clean_text(text, hard_wrap=None):
     return text
 
 
-# ── Main ────────────────────────────────────────────────────────
-
-def main():
-    parser = argparse.ArgumentParser(
-        description='Convert EPUB/PDF to plain text for Altoid eInk Reader'
-    )
-    parser.add_argument('input', help='Input file (.epub or .pdf)')
-    parser.add_argument('-o', '--output', help='Output file (default: input.txt)')
-    parser.add_argument('-w', '--wrap', type=int, default=0,
-                        help='Hard-wrap text at N characters (0 = no wrap, ~21 for eInk display)')
-    parser.add_argument('--title', help='Override title (first line of output)')
-    args = parser.parse_args()
-
-    input_path = Path(args.input)
+def convert_file(input_path, output_path=None, output_dir=None, hard_wrap=0, title_override=None):
+    """Convert an EPUB/PDF file to text. Returns stats for UI/CLI reporting."""
+    input_path = Path(input_path)
     if not input_path.exists():
-        print(f"Error: {args.input} not found", file=sys.stderr)
-        sys.exit(1)
+        raise FileNotFoundError(f"{input_path} not found")
 
     suffix = input_path.suffix.lower()
-
-    print(f"Converting: {input_path.name} ...")
 
     if suffix == '.epub':
         title, raw_text = epub_to_text(input_path)
     elif suffix == '.pdf':
         title, raw_text = pdf_to_text(input_path)
     else:
-        print(f"Error: unsupported format '{suffix}'. Use .epub or .pdf",
-              file=sys.stderr)
-        sys.exit(1)
+        raise ValueError(f"unsupported format '{suffix}'. Use .epub or .pdf")
 
-    # Clean text
-    text = clean_text(raw_text, hard_wrap=args.wrap)
+    text = clean_text(raw_text, hard_wrap=hard_wrap)
 
-    # Add title
-    final_title = args.title or title
+    final_title = title_override or title
     if not text.startswith('## '):
         text = f"## {final_title}\n\n{text}"
 
-    # Write output
-    output_path = Path(args.output) if args.output else input_path.with_suffix('.txt')
+    if output_path:
+        output_path = Path(output_path)
+    elif output_dir:
+        output_path = Path(output_dir) / input_path.with_suffix('.txt').name
+    else:
+        output_path = input_path.with_suffix('.txt')
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(text, encoding='utf-8')
 
-    # Stats
     lines = text.count('\n') + 1
     chars = len(text)
     pages_est = max(1, lines // 32)  # ~32 lines per eInk page
-    print(f"  → {output_path}")
-    print(f"  {chars:,} chars, {lines:,} lines, ~{pages_est} eInk pages")
+
+    return {
+        'input_path': input_path,
+        'output_path': output_path,
+        'chars': chars,
+        'lines': lines,
+        'pages_est': pages_est,
+    }
+
+
+def parse_dropped_path(raw_path):
+    """Normalize a path pasted or dragged into a terminal."""
+    raw_path = raw_path.strip()
+    if not raw_path:
+        return ''
+    try:
+        parts = shlex.split(raw_path)
+    except ValueError:
+        parts = []
+    if len(parts) == 1:
+        return parts[0]
+    return raw_path.strip('\'"')
+
+
+def choose_output_folder():
+    """Open an OS folder dialog when available. Returns a path or an empty string."""
+    if sys.platform == 'darwin' and shutil.which('osascript'):
+        script = 'POSIX path of (choose folder with prompt "Choose output folder")'
+        result = subprocess.run(
+            ['osascript', '-e', script],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+        return ''
+
+    if shutil.which('zenity'):
+        result = subprocess.run(
+            ['zenity', '--file-selection', '--directory', '--title=Choose output folder'],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+        return ''
+
+    if shutil.which('kdialog'):
+        result = subprocess.run(
+            ['kdialog', '--getexistingdirectory', str(Path.home())],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+        return ''
+
+    return ''
+
+
+def run_interactive():
+    """Prompt for input in the terminal and use a folder dialog when possible."""
+    print("Altoid eInk Converter")
+    print("Drag an EPUB/PDF into this terminal, or paste its path.")
+    input_path = parse_dropped_path(input("Input file: "))
+    if not input_path:
+        raise ValueError("No input file selected")
+
+    print("Opening output folder chooser...")
+    output_dir = choose_output_folder()
+    if not output_dir:
+        print("No folder dialog is available or no folder was selected.")
+        print("Drag an output folder into this terminal, or paste its path.")
+        output_dir = parse_dropped_path(input("Output folder: "))
+    if not output_dir:
+        raise ValueError("No output folder selected")
+
+    wrap_raw = input("Wrap width [0, use 21 for screen-width wrapping]: ").strip()
+    try:
+        wrap = int(wrap_raw or "0")
+        if wrap < 0:
+            raise ValueError
+    except ValueError as exc:
+        raise ValueError("Wrap width must be a non-negative number") from exc
+
+    title = input("Title override [optional]: ").strip() or None
+
+    result = convert_file(
+        input_path,
+        output_dir=output_dir,
+        hard_wrap=wrap,
+        title_override=title,
+    )
+    print(f"Saved: {result['output_path']}")
+    print(f"{result['chars']:,} chars, {result['lines']:,} lines, ~{result['pages_est']} eInk pages")
+
+
+# ── Main ────────────────────────────────────────────────────────
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Convert EPUB/PDF to plain text for Altoid eInk Reader'
+    )
+    parser.add_argument('input', nargs='?', help='Input file (.epub or .pdf)')
+    parser.add_argument('-o', '--output', help='Output file (default: input.txt)')
+    parser.add_argument('-d', '--output-dir', help='Output folder (default: input file folder)')
+    parser.add_argument('-w', '--wrap', type=int, default=0,
+                        help='Hard-wrap text at N characters (0 = no wrap, ~21 for eInk display)')
+    parser.add_argument('--title', help='Override title (first line of output)')
+    parser.add_argument('--interactive', action='store_true',
+                        help='Prompt for input path and open an output-folder dialog when available')
+    args = parser.parse_args()
+
+    if args.interactive:
+        try:
+            run_interactive()
+        except Exception as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            sys.exit(1)
+        return
+
+    if not args.input:
+        parser.error('input is required unless --interactive is used')
+
+    input_path = Path(args.input)
+    print(f"Converting: {input_path.name} ...")
+    try:
+        result = convert_file(
+            input_path,
+            output_path=args.output,
+            output_dir=args.output_dir,
+            hard_wrap=args.wrap,
+            title_override=args.title,
+        )
+    except Exception as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"  → {result['output_path']}")
+    print(f"  {result['chars']:,} chars, {result['lines']:,} lines, ~{result['pages_est']} eInk pages")
 
 
 if __name__ == '__main__':
