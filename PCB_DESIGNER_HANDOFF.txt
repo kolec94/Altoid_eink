@@ -1,0 +1,64 @@
+Altoid eInk Reader - PCB Designer Handoff
+=========================================
+
+Please design a first prototype PCB around this repository's schematic and
+pinout. Verify mechanical fit and EYESPI connector orientation before
+fabrication.
+
+Project Summary
+---------------
+This is a pocket eInk reader built into an Altoids tin. It uses a Raspberry Pi
+Pico, Pimoroni Pico LiPo SHIM, Adafruit ThinkInk 2.9" tri-color eInk display,
+microSD storage, and three navigation buttons.
+
+Current Hardware Requirements
+-----------------------------
+- Display: Adafruit ThinkInk 2.9" Red/Black/White eInk Display, PID 1028
+- Display connection: 18-pin EYESPI
+- Use EYESPI breakout/adapter signal names in the schematic and PCB notes
+- Do not use the older Adafruit PID 4224 eInk Breakout Friend wiring
+- No display ENA wire is used in this EYESPI setup
+- Display is mounted inside the Altoids tin lid, facing into the tin
+- No display cutout through the top lid
+- Buttons still need physical placement and holes
+- Power is via Raspberry Pi Pico + Pimoroni Pico LiPo SHIM
+
+Required EYESPI Signal Mapping
+------------------------------
+EYESPI VIN   -> Pico 3V3(OUT), pin 36
+EYESPI GND   -> Pico GND, pin 38
+EYESPI SCK   -> Pico GP2, pin 4
+EYESPI MOSI  -> Pico GP3, pin 5
+EYESPI MISO  -> Pico GP4, pin 6
+EYESPI TCS   -> Pico GP5, pin 7
+EYESPI DC    -> Pico GP6, pin 9
+EYESPI RST   -> Pico GP7, pin 10
+EYESPI BUSY  -> Pico GP8, pin 11
+EYESPI SDCS  -> Pico GP9, pin 12
+EYESPI MEMCS -> Pico GP13, pin 17
+
+Button Mapping
+--------------
+BTN_UP   -> Pico GP10, pin 14 -> button -> GND
+BTN_DOWN -> Pico GP11, pin 15 -> button -> GND
+BTN_SEL  -> Pico GP12, pin 16 -> button -> GND
+
+Buttons are active-low. Firmware uses internal pull-ups.
+
+Important Repo Files
+--------------------
+- docs/pinout.md
+- hardware/README.md
+- hardware/SCHEMATIC.md
+- hardware/Altoid_eink.kicad_sch
+- hardware/schematic_ascii.txt
+
+Notes for Prototype PCB
+-----------------------
+- Treat this as a first prototype spin, not final production.
+- Confirm EYESPI connector pin 1 orientation and cable direction.
+- Confirm the display and cable can physically mount inside the tin lid.
+- Confirm Pico + LiPo SHIM + battery stack height in the tin.
+- Maintain common ground between Pico, EYESPI display, buttons, and power.
+- Keep SPI traces short and clear where practical.
+- Provide accessible pads or headers for debugging SPI/control signals if space allows.
